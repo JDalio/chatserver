@@ -1,6 +1,10 @@
 package com.huixiang.xzb.chatserver.Server;
 
-import com.huixiang.xzb.chatserver.Configuration.Configuration;
+import com.huixiang.xzb.chatserver.configuration.Configuration;
+import com.huixiang.xzb.chatserver.handler.UserStateHandler;
+import com.huixiang.xzb.chatserver.handler.BinaryMessageHandler;
+import com.huixiang.xzb.chatserver.handler.TextMessageHandler;
+import com.huixiang.xzb.chatserver.manager.UserManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -10,6 +14,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
@@ -26,7 +32,8 @@ public class ChatServer {
 
     private int port= Configuration.PORT;
     private int bossThreadNumber=Configuration.BOSS_THREAD_NUMBER;
-    private int
+    private int scanDuration = Configuration.SCAN_DURATION;
+    private int readIdleDuration = Configuration.READ_IDLE_DURATION;
 
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup workGroup;
@@ -42,6 +49,7 @@ public class ChatServer {
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_KEEPALIVE,true)
                 .localAddress(new InetSocketAddress(port))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -50,13 +58,16 @@ public class ChatServer {
                                 new HttpServerCodec(),
                                 new HttpObjectAggregator(65536),
                                 new ChunkedWriteHandler(),
-                                new IdleStateHandler(60, 0, 0),
-                                new AuthHandler(),
-                                new MessageHandler()
+                                new WebSocketServerCompressionHandler(),
+                                new WebSocketServerProtocolHandler("/p2p",null,true,10485760),
+                                new IdleStateHandler(readIdleDuration,0,0),
+                                new UserStateHandler(),
+                                new TextMessageHandler(),
+                                new BinaryMessageHandler()
                         );
                     }
                 });
-        deamonService = Executors.newScheduledThreadPool(2);
+        deamonService = Executors.newScheduledThreadPool(1);
     }
 
     public void start() {
@@ -70,18 +81,9 @@ public class ChatServer {
                 @Override
                 public void run() {
                     logger.info("scanNotActiveChannel --------");
-                    UserInfoManager.scanNotActiveChannel();
+                    UserManager.scanNotActiveChannel();
                 }
-            }, 3, 60, TimeUnit.SECONDS);
-
-            // 定时向所有客户端发送Ping消息
-            deamonService.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    logger.info("broadCastPing --------");
-                    UserInfoManager.broadCastPing();
-                }
-            }, 3, 50, TimeUnit.SECONDS);
+            }, 3, scanDuration, TimeUnit.SECONDS);
 
             logger.info("WebSocketServer start success, port is:{}", port);
             cf.channel().closeFuture().sync();
