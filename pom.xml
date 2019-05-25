@@ -22,12 +22,12 @@
             <artifactId>jedis</artifactId>
             <version>3.0.1</version>
         </dependency>
-        <!-- mybatis -->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.4.6</version>
-        </dependency>
+        <!--&lt;!&ndash; mybatis &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.mybatis</groupId>-->
+            <!--<artifactId>mybatis</artifactId>-->
+            <!--<version>3.4.6</version>-->
+        <!--</dependency>-->
         <!-- netty -->
         <dependency>
             <groupId>io.netty</groupId>
