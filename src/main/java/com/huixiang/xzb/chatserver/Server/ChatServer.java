@@ -90,6 +90,7 @@ public class ChatServer {
         }
     }
 
+    //TODO redis persistence
     public void shutdown() {
         deamonService.shutdown();
         bossGroup.shutdownGracefully();

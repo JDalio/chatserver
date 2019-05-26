@@ -1,8 +1,8 @@
 package com.huixiang.xzb.chatserver.handler;
 
 import com.huixiang.xzb.chatserver.manager.UserManager;
-import com.huixiang.xzb.chatserver.proto.InMessage;
-import com.huixiang.xzb.chatserver.proto.OutMessage;
+import com.huixiang.xzb.chatserver.proto.CMessage;
+import com.huixiang.xzb.chatserver.proto.SMessage;
 import com.huixiang.xzb.chatserver.util.DateTimeUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -21,7 +21,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
         logger.info("channelRead0: {}", msg.text());
-        InMessage inmsg = new InMessage(msg.text());
+        CMessage inmsg = new CMessage(msg.text());
         if (inmsg.getType().equals("sys")) {
             String cmsg = inmsg.getMess();
             //register event
@@ -55,7 +55,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 UserManager.delUser(ctx.channel());
             }
         } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            ctx.writeAndFlush(new TextWebSocketFrame(new OutMessage("sys", 200, DateTimeUtil.getCurrentTime()).toString()));
+            ctx.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 200, DateTimeUtil.getCurrentTime()).toString()));
         } else {
             ctx.fireUserEventTriggered(evt);
         }

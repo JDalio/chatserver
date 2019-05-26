@@ -59,6 +59,11 @@ public class DateTimeUtil {
         return sdf.format(timestamp);
     }
 
+    public static String getDateTime(String stamp) {
+        SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
+        Timestamp timestamp = new Timestamp(Long.valueOf(stamp));
+        return sdf.format(timestamp);
+    }
     /**
      * 获取当前的月份
      *

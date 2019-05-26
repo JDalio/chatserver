@@ -2,19 +2,20 @@ package com.huixiang.xzb.chatserver.proto;
 
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.Date;
-
-public class InMessage {
+/**
+ * client message
+ */
+public class CMessage {
     private String from;
     private String to;
     private String type;
     private String mess;
     private String datetime;
 
-    public InMessage() {
+    public CMessage() {
     }
 
-    public InMessage(String msg) {
+    public CMessage(String msg) {
         JSONObject obj = JSONObject.parseObject(msg);
         this.from = obj.getString("from");
         this.type = obj.getString("type");

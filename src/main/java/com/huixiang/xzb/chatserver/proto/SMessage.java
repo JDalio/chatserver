@@ -1,27 +1,29 @@
 package com.huixiang.xzb.chatserver.proto;
 
 import com.alibaba.fastjson.JSONObject;
-
-public class OutMessage {
+/**
+ * server message
+ */
+public class SMessage {
     private String type;
     private int code;
     private String mess;
     private String datetime;
 
-    public OutMessage(String type, int code,String datetime) {
+    public SMessage(String type, int code, String datetime) {
         this.type = type;
         this.code = code;
         this.datetime=datetime;
     }
 
-    public OutMessage(String type, int code, String mess,String datetime) {
+    public SMessage(String type, int code, String mess, String datetime) {
         this.type = type;
         this.code = code;
         this.mess = mess;
         this.datetime=datetime;
     }
 
-    public OutMessage(String type, String mess,String datetime) {
+    public SMessage(String type, String mess, String datetime) {
         this.type = type;
         this.mess = mess;
         this.datetime=datetime;
