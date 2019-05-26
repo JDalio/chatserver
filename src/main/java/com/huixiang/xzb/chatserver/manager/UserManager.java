@@ -34,18 +34,24 @@ public class UserManager {
                 if (userChannels.get(uid) == channel) {
                     logger.info("delUser: uid {}", uid);
                     userChannels.remove(uid);
-                    channel.close();
                 }
+            }
+            if(channel!=null){
+                channel.disconnect();
+                channel.close();
             }
         } finally {
             rwLock.writeLock().unlock();
         }
     }
 
-    public static boolean isOnline(String uid){
+    public static boolean isOnline(String uid) {
         return userChannels.containsKey(uid);
     }
 
+    public static int getOnlineUserNumber(){
+        return userChannels.size();
+    }
     /**
      * scan and close in-active Channel
      */
@@ -55,5 +61,6 @@ public class UserManager {
                 delUser(ch);
             }
         }
+        logger.info(">>>>>>Online Number: {}",userChannels.size());
     }
 }

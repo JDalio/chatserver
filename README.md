@@ -9,8 +9,10 @@
 + refresh(chat state) redis     
 
 # Redis
-## Design
-hash chat stuid seniorid expire_time  
+## unresolved message: list
+to[from:time mess]
+## chat relationship: hash
+ chat stuid seniorid expire_time  
 
 # Protocol - json
 
@@ -19,7 +21,7 @@ hash chat stuid seniorid expire_time
 {type:/img/voc mess:url}  
 {type: sys, code: 500(server error)/200(binary upload success)more..., mess: message}
 ## client message  
-{from: uid, type: sys, mess: register/...}
+{from: uid, type: sys, mess: register/exit/cerror}
 {from: uid, to: uid, type: txt/img/voc/,mess: message}
 ## binary message
 ### stage 1
@@ -29,6 +31,20 @@ server: {type: sys, code: 200, mess: url}
 client {from: uid, to: uid, type:txt/img/voc/,mess: message}  
 server {type:txt, mess: content} or {type:/img/voc mess:url}  
  
-# auth Work Flow
-handshake -> add self -> send/recv message
+# Websocket Message Flow
+## login
+[c]connect -> [s]connect established -> [c]send uid
+## logout
+
+# Guarantee 
+## delivery to end
+### client 
+save messages in local storage
+attach message with id(from_to_nth)
+respond server when message received
+### server
+save each message in redis
+when receiving response, delete the message
+re-send unconfirmed message periodically
+
   

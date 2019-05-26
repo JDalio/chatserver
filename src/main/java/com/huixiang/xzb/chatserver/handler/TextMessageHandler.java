@@ -22,11 +22,4 @@ public class TextMessageHandler extends SimpleChannelInboundHandler<TextWebSocke
         //If destination offline
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception
-    {
-        logger.error("exceptionCaught", cause);
-        UserManager.delUser(ctx.channel());
-    }
-
 }

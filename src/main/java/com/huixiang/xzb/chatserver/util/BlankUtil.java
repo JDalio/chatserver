@@ -1,4 +1,4 @@
-package com.huixiang.xzb.chatserver.utils;
+package com.huixiang.xzb.chatserver.util;
 
 import java.io.Serializable;
 import java.util.Collection;

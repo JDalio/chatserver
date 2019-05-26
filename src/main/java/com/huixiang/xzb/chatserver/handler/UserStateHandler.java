@@ -3,7 +3,7 @@ package com.huixiang.xzb.chatserver.handler;
 import com.huixiang.xzb.chatserver.manager.UserManager;
 import com.huixiang.xzb.chatserver.proto.InMessage;
 import com.huixiang.xzb.chatserver.proto.OutMessage;
-import com.huixiang.xzb.chatserver.utils.DateTimeUtil;
+import com.huixiang.xzb.chatserver.util.DateTimeUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.*;
@@ -20,10 +20,12 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+        logger.info("channelRead0: {}", msg.text());
         InMessage inmsg = new InMessage(msg.text());
-        if (inmsg.getTo() == null) {
+        if (inmsg.getType().equals("sys")) {
+            String cmsg = inmsg.getMess();
             //register event
-            if (inmsg.getType().equals("sys") && inmsg.getMess().equals("register")) {
+            if (cmsg.equals("register")) {
                 UserManager.addUser(inmsg.getFrom(), ctx.channel());
             }
             //TODO
@@ -32,15 +34,24 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             //chat message
             ctx.fireChannelRead(msg);
         }
+
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("channelInactive");
+        UserManager.delUser(ctx.channel());
+        super.channelInactive(ctx);
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        logger.info("userEventTriggered: " + evt.getClass().getSimpleName());
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             // 判断Channel是否读空闲, 读空闲时移除Channel
             if (event.state().equals(IdleState.READER_IDLE)) {
-                logger.warn("userEventTriggered: ChannelRead Timeout: [{}]", ctx.channel().remoteAddress());
+                logger.warn("ChannelRead Timeout: [{}]", ctx.channel().remoteAddress());
                 UserManager.delUser(ctx.channel());
             }
         } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
@@ -48,5 +59,11 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
         } else {
             ctx.fireUserEventTriggered(evt);
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.error("exceptionCaught", cause);
+        UserManager.delUser(ctx.channel());
     }
 }

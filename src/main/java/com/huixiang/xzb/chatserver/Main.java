@@ -9,10 +9,9 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
-        final ChatServer server = new ChatServer();
+        ChatServer server = new ChatServer();
         server.start();
 
-        // 注册进程钩子，在JVM进程关闭前释放资源
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
