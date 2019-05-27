@@ -6,8 +6,7 @@ public class Configuration {
 
     //netty configuration
     public static final int BOSS_THREAD_NUMBER = 1;
-    public static final int SCAN_DURATION = 60;
-    public static final int READ_IDLE_DURATION = 300;
+    public static final int READ_IDLE_DURATION = 15;
 
     //redis configuration
     public static final String REDIS_HOST = "localhost";
@@ -16,4 +15,10 @@ public class Configuration {
     public static final String REDIS_PASSWD = "lg280137!";
     public static final int REDIS_MAX_TOTAL=4;
     public static final int REDIS_MAX_IDLE=4;
+
+    //deamon service
+    public static final int DEAMON_THREAD_NUMBER = 2;
+    public static final int SCAN_DURATION = 60;
+    public static final int PING_DURATION = 15;
+//    public static final int
 }

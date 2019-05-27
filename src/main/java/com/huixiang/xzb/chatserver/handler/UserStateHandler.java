@@ -28,6 +28,10 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             if (cmsg.equals("register")) {
                 UserManager.addUser(inmsg.getFrom(), ctx.channel());
             }
+            //pong message
+            else if(cmsg.equals("pong")){
+                logger.info("pong uid: {}",inmsg.getFrom());
+            }
             //TODO
             //send previous messages
         } else {
@@ -55,7 +59,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 UserManager.delUser(ctx.channel());
             }
         } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            ctx.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 200, DateTimeUtil.getCurrentTime()).toString()));
+            ctx.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 200).toString()));
         } else {
             ctx.fireUserEventTriggered(evt);
         }

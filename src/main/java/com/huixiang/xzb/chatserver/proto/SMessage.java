@@ -2,31 +2,30 @@ package com.huixiang.xzb.chatserver.proto;
 
 import com.alibaba.fastjson.JSONObject;
 /**
- * server message
+ * server send SMessage to clients
+ * datetime: long timestamp, setter when necessary
  */
 public class SMessage {
     private String type;
     private int code;
     private String mess;
-    private String datetime;
+    private Long datetime;
 
-    public SMessage(String type, int code, String datetime) {
+
+    public SMessage(String type, int code) {
         this.type = type;
         this.code = code;
-        this.datetime=datetime;
     }
 
-    public SMessage(String type, int code, String mess, String datetime) {
+    public SMessage(String type, int code, String mess) {
         this.type = type;
         this.code = code;
         this.mess = mess;
-        this.datetime=datetime;
     }
 
-    public SMessage(String type, String mess, String datetime) {
+    public SMessage(String type, String mess) {
         this.type = type;
         this.mess = mess;
-        this.datetime=datetime;
     }
 
     @Override
@@ -58,11 +57,11 @@ public class SMessage {
         this.mess = mess;
     }
 
-    public String getDatetime() {
+    public Long getDatetime() {
         return datetime;
     }
 
-    public void setDatetime(String datetime) {
+    public void setDatetime(Long datetime) {
         this.datetime = datetime;
     }
 }

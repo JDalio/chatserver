@@ -33,6 +33,7 @@ public class ChatServer {
     private int port= Configuration.PORT;
     private int bossThreadNumber=Configuration.BOSS_THREAD_NUMBER;
     private int scanDuration = Configuration.SCAN_DURATION;
+    private int pingDuration = Configuration.PING_DURATION;
     private int readIdleDuration = Configuration.READ_IDLE_DURATION;
 
     private NioEventLoopGroup bossGroup;
@@ -65,7 +66,7 @@ public class ChatServer {
                         );
                     }
                 });
-        deamonService = Executors.newScheduledThreadPool(1);
+        deamonService = Executors.newScheduledThreadPool(Configuration.DEAMON_THREAD_NUMBER);
     }
 
     public void start() {
@@ -74,7 +75,7 @@ public class ChatServer {
             //start the server
             ChannelFuture cf = bootstrap.bind(port).sync();
 
-            // 定时扫描所有的Channel，关闭失效的Channel
+            // 定时扫描所有的Channel，关闭open but inActive的Channel
             deamonService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
@@ -82,6 +83,12 @@ public class ChatServer {
                     UserManager.scanNotActiveChannel();
                 }
             }, 3, scanDuration, TimeUnit.SECONDS);
+
+            // send Ping message periodically(15 /s)
+            deamonService.scheduleAtFixedRate(()->{
+                logger.info("Broadcast Ping ---------");
+                UserManager.broadCastPing();
+            },3,pingDuration,TimeUnit.SECONDS);
 
             logger.info("WebSocketServer start success, port is:{}", port);
             cf.channel().closeFuture().sync();

@@ -29,7 +29,7 @@ public class MessageManager {
             String[] ary = str.split("[: ]", 4);
             cMessage.setFrom(ary[0]);
             cMessage.setType(ary[1]);
-            cMessage.setDatetime(DateTimeUtil.getDateTime(ary[2]));
+            cMessage.setDatetime(Long.valueOf(ary[2]));
             cMessage.setMess(ary[3]);
             cmsgs.add(cMessage);
         }

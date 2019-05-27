@@ -1,6 +1,9 @@
 package com.huixiang.xzb.chatserver.manager;
 
+import com.huixiang.xzb.chatserver.proto.CMessage;
+import com.huixiang.xzb.chatserver.proto.SMessage;
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +39,7 @@ public class UserManager {
                     userChannels.remove(uid);
                 }
             }
-            if(channel!=null){
+            if (channel != null) {
                 channel.disconnect();
                 channel.close();
             }
@@ -49,9 +52,10 @@ public class UserManager {
         return userChannels.containsKey(uid);
     }
 
-    public static int getOnlineUserNumber(){
+    public static int getOnlineUserNumber() {
         return userChannels.size();
     }
+
     /**
      * scan and close in-active Channel
      */
@@ -61,6 +65,16 @@ public class UserManager {
                 delUser(ch);
             }
         }
-        logger.info(">>>>>>Online Number: {}",userChannels.size());
+        logger.info(">>>>>>Online Number: {}", userChannels.size());
+    }
+
+    public static void broadCastPing() {
+        for (Channel ch : userChannels.values()) {
+            if (!ch.isOpen() || !ch.isActive()) {
+                delUser(ch);
+            } else {
+                ch.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 1000).toString()));
+            }
+        }
     }
 }

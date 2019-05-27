@@ -3,14 +3,15 @@ package com.huixiang.xzb.chatserver.proto;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * client message
+ * client send CMessage to server
+ * from type and mess is necessary
  */
 public class CMessage {
     private String from;
     private String to;
     private String type;
     private String mess;
-    private String datetime;
+    private Long datetime;
 
     public CMessage() {
     }
@@ -20,7 +21,9 @@ public class CMessage {
         this.from = obj.getString("from");
         this.type = obj.getString("type");
         this.mess = obj.getString("mess");
-        this.datetime=obj.getString("datetime");
+        if(obj.containsKey("datetime")){
+            this.datetime=obj.getLong("datetime");
+        }
         if (obj.containsKey("to")) {
             this.to = obj.getString("to");
         }
@@ -63,11 +66,11 @@ public class CMessage {
         this.mess = mess;
     }
 
-    public String getDatetime() {
+    public Long getDatetime() {
         return datetime;
     }
 
-    public void setDatetime(String datetime) {
+    public void setDatetime(Long datetime) {
         this.datetime = datetime;
     }
 }
