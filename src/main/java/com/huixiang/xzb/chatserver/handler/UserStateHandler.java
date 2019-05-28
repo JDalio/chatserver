@@ -1,9 +1,9 @@
 package com.huixiang.xzb.chatserver.handler;
 
+import com.huixiang.xzb.chatserver.manager.MessageManager;
 import com.huixiang.xzb.chatserver.manager.UserManager;
 import com.huixiang.xzb.chatserver.proto.CMessage;
 import com.huixiang.xzb.chatserver.proto.SMessage;
-import com.huixiang.xzb.chatserver.util.DateTimeUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.*;
@@ -23,14 +23,22 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
         logger.info("channelRead0: {}", msg.text());
         CMessage inmsg = new CMessage(msg.text());
         if (inmsg.getType().equals("sys")) {
-            String cmsg = inmsg.getMess();
+            String mess = inmsg.getMess();
             //register event
-            if (cmsg.equals("register")) {
+            if (mess.equals("register")) {
+                //TODO check uid
                 UserManager.addUser(inmsg.getFrom(), ctx.channel());
+                //send number of unresolved message
+                //{ type: "sys", code: 100, mess: unresolved number}
+                Integer number = MessageManager.getUnresolvedNum(inmsg.getFrom());
+                SMessage sMessage = new SMessage("sys", 100, number.toString());
+                ctx.writeAndFlush(new TextWebSocketFrame(sMessage.toString()));
             }
-            //pong message
-            else if(cmsg.equals("pong")){
-                logger.info("pong uid: {}",inmsg.getFrom());
+            //ping message
+            else if (mess.equals("ping")) {
+                logger.info("ping uid: {}", inmsg.getFrom());
+                ctx.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 1000).toString()));
+
             }
             //TODO
             //send previous messages

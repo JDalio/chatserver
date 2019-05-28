@@ -11,6 +11,8 @@ public class SMessage {
     private String mess;
     private Long datetime;
 
+    public SMessage() {
+    }
 
     public SMessage(String type, int code) {
         this.type = type;

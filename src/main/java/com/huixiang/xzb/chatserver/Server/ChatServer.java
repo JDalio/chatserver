@@ -85,10 +85,10 @@ public class ChatServer {
             }, 3, scanDuration, TimeUnit.SECONDS);
 
             // send Ping message periodically(15 /s)
-            deamonService.scheduleAtFixedRate(()->{
-                logger.info("Broadcast Ping ---------");
-                UserManager.broadCastPing();
-            },3,pingDuration,TimeUnit.SECONDS);
+//            deamonService.scheduleAtFixedRate(()->{
+//                logger.info("Broadcast Ping ---------");
+//                UserManager.broadCastPing();
+//            },3,pingDuration,TimeUnit.SECONDS);
 
             logger.info("WebSocketServer start success, port is:{}", port);
             cf.channel().closeFuture().sync();

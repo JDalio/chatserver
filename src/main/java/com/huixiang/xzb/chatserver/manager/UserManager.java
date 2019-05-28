@@ -68,13 +68,13 @@ public class UserManager {
         logger.info(">>>>>>Online Number: {}", userChannels.size());
     }
 
-    public static void broadCastPing() {
-        for (Channel ch : userChannels.values()) {
-            if (!ch.isOpen() || !ch.isActive()) {
-                delUser(ch);
-            } else {
-                ch.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 1000).toString()));
-            }
-        }
-    }
+//    public static void broadCastPing() {
+//        for (Channel ch : userChannels.values()) {
+//            if (!ch.isOpen() || !ch.isActive()) {
+//                delUser(ch);
+//            } else {
+//                ch.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 1000).toString()));
+//            }
+//        }
+//    }
 }

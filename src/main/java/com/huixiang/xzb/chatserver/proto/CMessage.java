@@ -2,6 +2,8 @@ package com.huixiang.xzb.chatserver.proto;
 
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.Objects;
+
 /**
  * client send CMessage to server
  * from type and mess is necessary
@@ -33,6 +35,20 @@ public class CMessage {
     public String toString() {
         return JSONObject.toJSONString(this);
     }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CMessage cMessage = (CMessage) o;
+        return from.equals(cMessage.from) &&
+                Objects.equals(to, cMessage.to) &&
+                type.equals(cMessage.type) &&
+                mess.equals(cMessage.mess) &&
+                Objects.equals(datetime, cMessage.datetime);
+    }
+
 
     public String getFrom() {
         return from;
