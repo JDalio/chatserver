@@ -15,6 +15,7 @@ public class Configuration {
     public static final String REDIS_PASSWD = "lg280137!";
     public static final int REDIS_MAX_TOTAL=4;
     public static final int REDIS_MAX_IDLE=4;
+    public static final String AUTHORITY_DB = "authority";
 
     //deamon service
     public static final int DEAMON_THREAD_NUMBER = 2;
