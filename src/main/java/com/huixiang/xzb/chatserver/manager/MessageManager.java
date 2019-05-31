@@ -9,38 +9,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * When send messages to a offline user, I call the offline user first,
- * then save the messages in redis set.
- * <p>
- * When the user go online, send these messages saved previous to him first
- */
 public class MessageManager {
     private static final Jedis jedis = RedisPool.getJedis();
 
     public static void cache(String msg) {
         CMessage cMessage = new CMessage(msg);
-        String key = cMessage.getTo();
+        String key = "cache:" + cMessage.getTo();
         Long score = cMessage.getDatetime();
-        String member = cMessage.getFrom() + ":" + cMessage.getType() + ":" + cMessage.getDatetime() + " " + cMessage.getMess();
+        String member = cMessage.getFrom() + ":" + cMessage.getType() + ":" + " " + cMessage.getMess();
         jedis.zadd(key, score, member);
     }
 
     public static int getUnresolvedNum(String uid) {
-        return jedis.zcard(uid).intValue();
+        return jedis.zcard("cache:" + uid).intValue();
     }
 
     public static List<CMessage> readAll(String uid) {
         List<CMessage> msgs = new ArrayList<>();
-        Set<String> strs = jedis.zrange(uid, 0, -1);
+        Set<String> strs = jedis.zrange("cache:" + uid, 0, -1);
         for (String str : strs) {
-            String[] arr = str.split("[: ]", 4);
+            Long datetime = jedis.zscore("cache:" + uid, str).longValue();
+            String[] arr = str.split("[: ]", 3);
             CMessage msg = new CMessage();
             msg.setFrom(arr[0]);
             msg.setTo(uid);
             msg.setType(arr[1]);
-            msg.setDatetime(Long.valueOf(arr[2]));
-            msg.setMess(arr[3]);
+            msg.setMess(arr[2]);
+            msg.setDatetime(datetime);
             msgs.add(msg);
         }
         return msgs;

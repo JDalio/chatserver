@@ -13,6 +13,7 @@ public class CMessage {
     private String to;
     private String type;
     private String mess;
+    private String sessionkey;
     private Long datetime;
 
     public CMessage() {
@@ -23,6 +24,7 @@ public class CMessage {
         this.from = obj.getString("from");
         this.type = obj.getString("type");
         this.mess = obj.getString("mess");
+        this.sessionkey = obj.getString("sessionkey");
         if(obj.containsKey("datetime")){
             this.datetime=obj.getLong("datetime");
         }
@@ -88,5 +90,13 @@ public class CMessage {
 
     public void setDatetime(Long datetime) {
         this.datetime = datetime;
+    }
+
+    public String getSessionkey() {
+        return sessionkey;
+    }
+
+    public void setSessionkey(String sessionkey) {
+        this.sessionkey = sessionkey;
     }
 }

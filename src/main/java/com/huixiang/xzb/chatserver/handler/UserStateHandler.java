@@ -7,6 +7,7 @@ import com.huixiang.xzb.chatserver.proto.SMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -23,35 +24,33 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
         return ctx.writeAndFlush(new TextWebSocketFrame(msg.toString()));
     }
 
+    private void close(ChannelHandlerContext ctx) {
+        ChannelFuture future = send(ctx, new SMessage("sys", 5000));
+        future.addListener((ChannelFuture f) -> {
+            ctx.channel().disconnect();
+            ctx.channel().close();
+        });
+    }
+
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
         logger.info("channelRead0: {}", msg.text());
         CMessage inmsg = new CMessage(msg.text());
+        //check CMessage
+        if (!UserManager.checkCMessage(inmsg)) {
+            close(ctx);
+            return;
+        }
         if (inmsg.getType().equals("sys")) {
             String mess = inmsg.getMess();
             String uid = inmsg.getFrom();
-            //register event
-            if (mess.equals("register")) {
-                // do authority
-                if (!UserManager.checkUser(uid)) {
-                    ChannelFuture future = send(ctx, new SMessage("sys", 5000));
-                    future.addListener((ChannelFuture f)->{
-                        ctx.channel().disconnect();
-                        ctx.channel().close();
-                    });
-                    return;
-                }
-                UserManager.addUser(uid, ctx.channel());
-                //send number of unresolved message
-                //{ type: "sys", code: 100, mess: unresolved number}
-                Integer number = MessageManager.getUnresolvedNum(uid);
-                SMessage sMessage = new SMessage("sys", 100, number.toString());
-                send(ctx, sMessage);
-            }
             //ping message
-            else if (mess.equals("ping")) {
-                logger.info("ping uid: {}", inmsg.getFrom());
+            if (mess.equals("ping")) {
                 send(ctx, new SMessage("sys", 1000));
+            } else if (mess.equals("unread")) {
+                Integer unread = MessageManager.getUnresolvedNum(uid);
+                send(ctx, new SMessage("sys", 100, unread.toString()));
             }
             //TODO
             //send previous messages
@@ -59,7 +58,6 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             //chat message
             ctx.fireChannelRead(msg);
         }
-
     }
 
     @Override
@@ -80,7 +78,20 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 UserManager.delUser(ctx.channel());
             }
         } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            send(ctx, new SMessage("sys", 200));
+            //read sessionkey in header
+            WebSocketServerProtocolHandler.HandshakeComplete event = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
+            HttpHeaders headers = event.requestHeaders();
+            String sessionkey = headers.get("sessionkey");
+            logger.info(sessionkey);
+            // do authority
+            if (!UserManager.checkConnectAuthority(sessionkey)) {
+                close(ctx);
+                return;
+            }
+
+            //map user channel by uid
+            String uid = UserManager.getUserId(sessionkey);
+            UserManager.addUser(uid, ctx.channel());
         } else {
             ctx.fireUserEventTriggered(evt);
         }

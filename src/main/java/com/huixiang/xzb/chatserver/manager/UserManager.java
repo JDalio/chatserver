@@ -24,16 +24,47 @@ public class UserManager {
 
     private static final Jedis jedis = RedisPool.getJedis();
 
-    public static boolean checkUser(String uid) {
-        String db = Configuration.AUTHORITY_DB;
-        if(!jedis.exists(db) || jedis.hget(db, uid) == null){
+    public static String getUserId(String sessionkey) {
+        return jedis.get("session:" + sessionkey);
+    }
+
+    public static boolean checkCMessage(CMessage msg) {
+        // check session
+        if (msg.getType().equals("sys") && msg.getMess().equals("ping")) {
+            return true;
+        }
+        String uid = jedis.get("session:" + msg.getSessionkey());
+        if (uid == null || !uid.equals(msg.getFrom())) {
             return false;
         }
-        if (Integer.valueOf(jedis.hget(db, uid)) > 0) {
+        // check whether 'from' could talk to 'to'
+        if (msg.getTo() != null) {
+            String key1 = String.join(":", "chat", msg.getFrom(), msg.getTo());
+            String key2 = String.join(":", msg.getTo(), msg.getFrom());
+            if (jedis.get(key1) == null && jedis.get(key2) == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkConnectAuthority(String sessionkey) {
+        // check sessionkey -> get uid
+        String uid = jedis.get("session:" + sessionkey);
+        if (uid == null) {
+            return false;
+        }
+        // whether user have others to chat
+        String chatAuthDB = Configuration.AUTHORITY_DB;
+        String value = jedis.hget(chatAuthDB, sessionkey);
+        if (!jedis.exists(chatAuthDB) || value == null) {
+            return false;
+        }
+        if (Integer.valueOf(value) > 0) {
             return true;
-        }else{
+        } else {
             // del member
-            jedis.hdel(db,uid);
+            jedis.hdel(chatAuthDB, uid);
         }
         return false;
     }
