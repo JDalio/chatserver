@@ -15,8 +15,11 @@ import static org.junit.Assert.*;
  * @author Dalio
  */
 public class MessageManagerTest {
-    private String txtjson = "{\"from\":\"abcdef\",\"type\":\"txt\",\"to\":\"wxzy34\",\"datetime\":1558885388621,\"mess\":\"哈喽\"}";
-    private String urljson = "{\"from\":\"abcdef\",\"type\":\"txt\",\"to\":\"wxzy34\",\"datetime\":1558885388628,\"mess\":\"https://www.google.com/search?rlz=1C2CHBD_zh-CNUS808US808&safe=strict&source=hp&ei=E5fqXOzbMOGJ0gKT4ZCIDA&q=%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F+%E6%94%B9%E5%8F%98globalData&oq=%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F+%E6%94%B9%E5%8F%98globalData&gs_l=psy-ab.12...1535.13530..13878...3.0..0.565.10893.2-30j5j0j2......0....1..gws-wiz.....6..35i39j0i131j0j0i203j0i12j0i4i30j0i30.09N1PtXNQD4\"}";
+    private String msg = "{\"from\":5,\"type\":\"txt\",\"to\":4,\"datetime\":1558885388628,\"sessionkey\":\"555555\",\"mess\":\"你好啊\"}";
+    private String msg1 = "{\"to\":4,\"from\":6,\"type\":\"img\",\"datetime\":1558885388629,\"sessionkey\":\"666666\",\"mess\":\"http://39.107.65.148/chat/class.jpg\"}";
+    private String invalidMsg = "{\"from\":6,\"type\":\"txt\",\"to\":4,\"datetime\":1558885388628,\"sessionkey\":\"asdfqwer12345678\",\"mess\":\"你好啊\"}";
+    private String invalidMsg1 = "{\"from\":7,\"type\":\"txt\",\"to\":4,\"datetime\":1558885388628,\"sessionkey\":\"777777\",\"mess\":\"你好啊\"}";
+    private String pingmsg = "{\"from\":4,\"type\":\"sys\",\"mess\":\"ping\"}";
 
     @Before
     public void before() throws Exception {
@@ -27,17 +30,43 @@ public class MessageManagerTest {
     }
 
     /**
-     * Method: cache(String msg) getUnresolved readAll
+     * Method: checkCMessage(CMessage msg)
      */
     @Test
-    public void testCacheGetReadAll() throws Exception {
-        MessageManager.cache(txtjson);
-        MessageManager.cache(urljson);
-        assertEquals(MessageManager.getUnresolvedNum("wxzy34"), 2);
-        List<CMessage> msgs = MessageManager.readAll("wxzy34");
-        assertEquals(new CMessage(txtjson), msgs.get(0));
-        assertEquals(new CMessage(urljson), msgs.get(1));
+    public void testCheckCMessage() throws Exception {
+        assert MessageManager.checkCMessage(new CMessage(msg));
+        assert MessageManager.checkCMessage(new CMessage(msg1));
+        assert MessageManager.checkCMessage(new CMessage(pingmsg));
 
+        assert !MessageManager.checkCMessage(new CMessage(invalidMsg));
+        assert !MessageManager.checkCMessage(new CMessage(invalidMsg1));
+    }
+
+    /**
+     * Method: cache(CMessage cMessage)
+     */
+    @Test
+    public void testCache() throws Exception {
+        MessageManager.cache(new CMessage(msg));
+        MessageManager.cache(new CMessage(msg1));
+    }
+
+    /**
+     * Method: getUnresolvedNum(String uid)
+     */
+    @Test
+    public void testGetUnresolvedNum() throws Exception {
+        assertEquals(MessageManager.getUnresolvedNum("4"), 2);
+    }
+
+    /**
+     * Method: getUnread(String uid)
+     */
+    @Test
+    public void testGetUnresolvedMsg() throws Exception {
+        List<CMessage> msgs = MessageManager.getUnresolvedMsg("4");
+        assertEquals(msgs.get(1), new CMessage(msg));
+        assertEquals(msgs.get(0), new CMessage(msg1));
     }
 
 

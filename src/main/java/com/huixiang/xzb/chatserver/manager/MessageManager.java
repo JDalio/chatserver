@@ -12,11 +12,32 @@ import java.util.Set;
 public class MessageManager {
     private static final Jedis jedis = RedisPool.getJedis();
 
-    public static void cache(String msg) {
-        CMessage cMessage = new CMessage(msg);
+    public static boolean checkCMessage(CMessage msg) {
+        // check session
+        if (msg.getType().equals("sys") && msg.getMess().equals("ping")) {
+            return true;
+        }
+        // check whether sessionkey and uid match
+        String uid = jedis.get("session:" + msg.getSessionkey());
+        if (uid == null || !uid.equals(msg.getFrom())) {
+            return false;
+        }
+        // check whether 'from' could talk to 'to'
+        if (msg.getTo() != null) {
+            String key1 = String.join(":", "chat", msg.getFrom(), msg.getTo());
+            String key2 = String.join(":", "chat", msg.getTo(), msg.getFrom());
+            if (jedis.get(key1) == null && jedis.get(key2) == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void cache(CMessage cMessage) {
         String key = "cache:" + cMessage.getTo();
         Long score = cMessage.getDatetime();
-        String member = cMessage.getFrom() + ":" + cMessage.getType() + ":" + " " + cMessage.getMess();
+
+        String member = cMessage.getFrom() + ":" + cMessage.getType() + ":" +cMessage.getDatetime()+ " " + cMessage.getMess();
         jedis.zadd(key, score, member);
     }
 
@@ -24,40 +45,20 @@ public class MessageManager {
         return jedis.zcard("cache:" + uid).intValue();
     }
 
-    public static List<CMessage> readAll(String uid) {
+    public static List<CMessage> getUnresolvedMsg(String uid) {
         List<CMessage> msgs = new ArrayList<>();
-        Set<String> strs = jedis.zrange("cache:" + uid, 0, -1);
+        Set<String> strs = jedis.zrevrange("cache:" + uid, 0, -1);
         for (String str : strs) {
-            Long datetime = jedis.zscore("cache:" + uid, str).longValue();
-            String[] arr = str.split("[: ]", 3);
+            String[] arr = str.split("[: ]", 4);
             CMessage msg = new CMessage();
             msg.setFrom(arr[0]);
             msg.setTo(uid);
             msg.setType(arr[1]);
-            msg.setMess(arr[2]);
-            msg.setDatetime(datetime);
+            msg.setDatetime(Long.valueOf(arr[2]));
+            msg.setMess(arr[3]);
             msgs.add(msg);
         }
         return msgs;
     }
-//
-//    public static List<CMessage> getMsgs(String uid) {
-//        if (uid.length() != 6 || jedis.llen(uid) == 0L) {
-//            return null;
-//        }
-//        List<String> strs = jedis.lrange(uid, 0, -1);
-//        List<CMessage> cmsgs = new ArrayList<>();
-//        for (String str : strs) {
-//            CMessage cMessage = new CMessage();
-//            cMessage.setTo(uid);
-//            String[] ary = str.split("[: ]", 4);
-//            cMessage.setFrom(ary[0]);
-//            cMessage.setType(ary[1]);
-//            cMessage.setDatetime(Long.valueOf(ary[2]));
-//            cMessage.setMess(ary[3]);
-//            cmsgs.add(cMessage);
-//        }
-//        return cmsgs;
-//    }
 
 }

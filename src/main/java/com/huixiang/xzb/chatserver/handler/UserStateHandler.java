@@ -35,13 +35,16 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-        logger.info("channelRead0: {}", msg.text());
         CMessage inmsg = new CMessage(msg.text());
+        if(!inmsg.getMess().equals("ping")){
+            logger.info("channelRead0: {}", msg.text());
+        }
         //check CMessage
-        if (!UserManager.checkCMessage(inmsg)) {
+        if (!MessageManager.checkCMessage(inmsg)) {
             close(ctx);
             return;
         }
+
         if (inmsg.getType().equals("sys")) {
             String mess = inmsg.getMess();
             String uid = inmsg.getFrom();
@@ -56,7 +59,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             //send previous messages
         } else {
             //chat message
-            ctx.fireChannelRead(msg);
+            new TextMessageHandler(ctx,inmsg).process();
         }
     }
 
@@ -69,12 +72,12 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        logger.info("userEventTriggered: " + evt.getClass().getSimpleName());
+//        logger.info("userEventTriggered: " + evt.getClass().getSimpleName());
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             // 判断Channel是否读空闲, 读空闲时移除Channel
             if (event.state().equals(IdleState.READER_IDLE)) {
-                logger.warn("ChannelRead Timeout: [{}]", ctx.channel().remoteAddress());
+//                logger.warn("ChannelRead Timeout: [{}]", ctx.channel().remoteAddress());
                 UserManager.delUser(ctx.channel());
             }
         } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
@@ -82,7 +85,12 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             WebSocketServerProtocolHandler.HandshakeComplete event = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
             HttpHeaders headers = event.requestHeaders();
             String sessionkey = headers.get("sessionkey");
-            logger.info(sessionkey);
+//            logger.info(headers.toString());
+            if (sessionkey == null) {
+                ctx.channel().disconnect();
+                ctx.channel().close();
+                return;
+            }
             // do authority
             if (!UserManager.checkConnectAuthority(sessionkey)) {
                 close(ctx);

@@ -28,24 +28,8 @@ public class UserManager {
         return jedis.get("session:" + sessionkey);
     }
 
-    public static boolean checkCMessage(CMessage msg) {
-        // check session
-        if (msg.getType().equals("sys") && msg.getMess().equals("ping")) {
-            return true;
-        }
-        String uid = jedis.get("session:" + msg.getSessionkey());
-        if (uid == null || !uid.equals(msg.getFrom())) {
-            return false;
-        }
-        // check whether 'from' could talk to 'to'
-        if (msg.getTo() != null) {
-            String key1 = String.join(":", "chat", msg.getFrom(), msg.getTo());
-            String key2 = String.join(":", msg.getTo(), msg.getFrom());
-            if (jedis.get(key1) == null && jedis.get(key2) == null) {
-                return false;
-            }
-        }
-        return true;
+    public static Channel getChannel(String uid) {
+        return userChannels.get(uid);
     }
 
     public static boolean checkConnectAuthority(String sessionkey) {
@@ -56,7 +40,7 @@ public class UserManager {
         }
         // whether user have others to chat
         String chatAuthDB = Configuration.AUTHORITY_DB;
-        String value = jedis.hget(chatAuthDB, sessionkey);
+        String value = jedis.hget(chatAuthDB, uid);
         if (!jedis.exists(chatAuthDB) || value == null) {
             return false;
         }
@@ -74,7 +58,7 @@ public class UserManager {
             logger.error("addUser: channel is not active, uid {}", uid);
             return false;
         }
-        logger.info("addUser: add user {}", uid);
+        logger.debug("addUser: add user {}", uid);
         rwLock.writeLock().lock();
         userChannels.put(uid, channel);
         rwLock.writeLock().unlock();
@@ -86,7 +70,7 @@ public class UserManager {
             rwLock.writeLock().lock();
             for (String uid : userChannels.keySet()) {
                 if (userChannels.get(uid) == channel) {
-                    logger.info("delUser: uid {}", uid);
+                    logger.debug("delUser: uid {}", uid);
                     userChannels.remove(uid);
                 }
             }
@@ -118,14 +102,4 @@ public class UserManager {
         }
         logger.info(">>>>>>Online Number: {}", userChannels.size());
     }
-
-//    public static void broadCastPing() {
-//        for (Channel ch : userChannels.values()) {
-//            if (!ch.isOpen() || !ch.isActive()) {
-//                delUser(ch);
-//            } else {
-//                ch.writeAndFlush(new TextWebSocketFrame(new SMessage("sys", 1000).toString()));
-//            }
-//        }
-//    }
 }

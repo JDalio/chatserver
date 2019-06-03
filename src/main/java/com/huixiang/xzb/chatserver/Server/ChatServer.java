@@ -61,7 +61,6 @@ public class ChatServer {
                                 new WebSocketServerProtocolHandler("/p2p",null,true,10485760),
                                 new IdleStateHandler(readIdleDuration,0,0),
                                 new UserStateHandler(),
-                                new TextMessageHandler(),
                                 new BinaryMessageHandler()
                         );
                     }
@@ -79,7 +78,7 @@ public class ChatServer {
             deamonService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
-                    logger.info("scanNotActiveChannel --------");
+//                    logger.info("scanNotActiveChannel --------");
                     UserManager.scanNotActiveChannel();
                 }
             }, 3, scanDuration, TimeUnit.SECONDS);
