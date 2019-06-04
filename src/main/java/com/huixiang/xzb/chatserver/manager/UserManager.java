@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -85,6 +86,15 @@ public class UserManager {
 
     public static boolean isOnline(String uid) {
         return userChannels.containsKey(uid);
+    }
+
+    public static void sendUnconfirmedMessage() {
+        for (String uid : userChannels.keySet()) {
+            List<CMessage> messages = MessageManager.getUnresolvedMsg(uid);
+            for (CMessage message : messages) {
+                userChannels.get(uid).writeAndFlush(new TextWebSocketFrame(message.toString()));
+            }
+        }
     }
 
     public static int getOnlineUserNumber() {

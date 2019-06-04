@@ -4,6 +4,7 @@ import com.huixiang.xzb.chatserver.configuration.Configuration;
 import com.huixiang.xzb.chatserver.handler.UserStateHandler;
 import com.huixiang.xzb.chatserver.handler.BinaryMessageHandler;
 import com.huixiang.xzb.chatserver.handler.TextMessageHandler;
+import com.huixiang.xzb.chatserver.manager.MessageManager;
 import com.huixiang.xzb.chatserver.manager.UserManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -80,14 +81,9 @@ public class ChatServer {
                 public void run() {
 //                    logger.info("scanNotActiveChannel --------");
                     UserManager.scanNotActiveChannel();
+                    UserManager.sendUnconfirmedMessage();
                 }
             }, 3, scanDuration, TimeUnit.SECONDS);
-
-            // send Ping message periodically(15 /s)
-//            deamonService.scheduleAtFixedRate(()->{
-//                logger.info("Broadcast Ping ---------");
-//                UserManager.broadCastPing();
-//            },3,pingDuration,TimeUnit.SECONDS);
 
             logger.info("WebSocketServer start success, port is:{}", port);
             cf.channel().closeFuture().sync();

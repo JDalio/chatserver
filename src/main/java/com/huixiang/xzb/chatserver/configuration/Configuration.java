@@ -19,7 +19,7 @@ public class Configuration {
 
     //deamon service
     public static final int DEAMON_THREAD_NUMBER = 2;
-    public static final int SCAN_DURATION = 60;
+    public static final int SCAN_DURATION = 5;
     public static final int PING_DURATION = 15;
 //    public static final int
 }

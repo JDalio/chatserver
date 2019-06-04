@@ -22,11 +22,13 @@ public class CMessage {
     public CMessage(String msg) {
         JSONObject obj = JSONObject.parseObject(msg);
         this.from = obj.getString("from");
-        this.type = obj.getString("type");
-        this.mess = obj.getString("mess");
         this.sessionkey = obj.getString("sessionkey");
-        if(obj.containsKey("datetime")){
-            this.datetime=obj.getLong("datetime");
+        this.type = obj.getString("type");
+        if (obj.containsKey("mess")) {
+            this.mess = obj.getString("mess");
+        }
+        if (obj.containsKey("datetime")) {
+            this.datetime = obj.getLong("datetime");
         }
         if (obj.containsKey("to")) {
             this.to = obj.getString("to");

@@ -26,8 +26,8 @@ public class TextMessageHandler {
             //cache message
             MessageManager.cache(msg);
 
-            //send message to destination
             //If destination online
+            //send message to destination
             Channel channel = UserManager.getChannel(msg.getTo());
             if (channel != null) {
                 // convert message
@@ -35,12 +35,8 @@ public class TextMessageHandler {
                 msg.setTo(null);
                 channel.writeAndFlush(new TextWebSocketFrame(msg.toString()));
             }
-            //If destination offline
-            else {
-
-            }
         } else if (msg.getType().equals("ack")) {
-
+            MessageManager.ackCMessage(msg);
         }
 
 

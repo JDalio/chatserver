@@ -18,16 +18,14 @@
 # Protocol
 
 ## server message
-{type:txt, mess: content}  //not used
-{type:/img/voc mess:url}  //not used
-{type: sys, code: 5000(user no authority)/100(init get number of unresolved message)/500(server error)/200(shake hand success)/1000(pong)/2000(ack), [mess: message]}
+{type:txt, mess: content}  //not used  
+{type:/img/voc mess:url}  //not used  
+{type: sys, code: 5000(user no authority)/100(init get number of unresolved message)/500(server error)/200(shake hand success)/1000(pong)/2000(ack), [mess: message]}  
 ## client message  
-{from: uid, type: sys, mess: ping}
-{from: uid, type: sys, mess: unread, sessionkey: key}
-{from: uid, to: uid, type: txt/img/voc/, mess: message, sessionkey: key}
-
-
-{from: uid, type: ack, mess: msg_code, sessionkey: key}
+{from: uid, type: sys, mess: ping}  
+{from: uid, sessionkey: key, type: sys, mess: unread}  
+{from: uid, sessionkey: key, type: txt/img/voc/,  to: uid, mess: message, datetime: datetime}  
+{from: uid, sessionkey: key, type: ack, to: uid, datetime: datetime}  
 
 ### Ps. datetime is always optional, and long, convert in client to display
 ## binary message

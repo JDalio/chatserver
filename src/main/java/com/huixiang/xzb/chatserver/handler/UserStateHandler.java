@@ -14,6 +14,8 @@ import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * establish connection -> use redis to do auth
  */
@@ -36,7 +38,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
         CMessage inmsg = new CMessage(msg.text());
-        if(!inmsg.getMess().equals("ping")){
+        if (inmsg.getMess() == null || !inmsg.getMess().equals("ping")) {
             logger.info("channelRead0: {}", msg.text());
         }
         //check CMessage
@@ -52,14 +54,14 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             if (mess.equals("ping")) {
                 send(ctx, new SMessage("sys", 1000));
             } else if (mess.equals("unread")) {
-                Integer unread = MessageManager.getUnresolvedNum(uid);
-                send(ctx, new SMessage("sys", 100, unread.toString()));
+                List<CMessage> unReadMessages = MessageManager.getUnresolvedMsg(uid);
+                for (CMessage message : unReadMessages) {
+                    send(ctx, message);
+                }
             }
-            //TODO
-            //send previous messages
         } else {
-            //chat message
-            new TextMessageHandler(ctx,inmsg).process();
+            //chat message or ack messages
+            new TextMessageHandler(ctx, inmsg).process();
         }
     }
 
@@ -73,6 +75,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
 //        logger.info("userEventTriggered: " + evt.getClass().getSimpleName());
+
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             // 判断Channel是否读空闲, 读空闲时移除Channel
@@ -85,7 +88,7 @@ public class UserStateHandler extends SimpleChannelInboundHandler<TextWebSocketF
             WebSocketServerProtocolHandler.HandshakeComplete event = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
             HttpHeaders headers = event.requestHeaders();
             String sessionkey = headers.get("sessionkey");
-//            logger.info(headers.toString());
+            logger.info(headers.toString());
             if (sessionkey == null) {
                 ctx.channel().disconnect();
                 ctx.channel().close();
