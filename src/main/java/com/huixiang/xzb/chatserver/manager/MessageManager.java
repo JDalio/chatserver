@@ -50,7 +50,7 @@ public class MessageManager {
 
     public static List<CMessage> getUnresolvedMsg(String uid) {
         List<CMessage> msgs = new ArrayList<>();
-        Set<String> strs = jedis.zrevrange("cache:" + uid, 0, -1);
+        Set<String> strs = jedis.zrange("cache:" + uid, 0, -1);
         for (String str : strs) {
             String[] arr = str.split("[: ]", 4);
             CMessage msg = new CMessage();
